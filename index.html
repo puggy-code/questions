@@ -1,0 +1,530 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>All questions</title>
+<script>window.QA_GH = {iter: 200000};</script>
+<!-- One question app for every set (team/bos_qa_all.py, 2026-11-13). Served by team/qa_portal.py at /all. Each tap saves to puggy.sqlite qa_answers. -->
+<style>
+:root {
+  --bg: #f6f5f2; --card: #fff; --ink: #1d1d1b; --muted: #6b6a66; --line: #e3e1db; --accent: #2f6f5e; --accent-ink: #fff;
+  --soft: #e4f0ec; --chosen: #d6ebe4; --hi: #f3c969; --bar: #e8e6e0; --warn: #7a4b00; --warn-bg: #fbf0dc;
+  color-scheme: light dark;
+}
+@media (prefers-color-scheme: dark) { :root {
+  --bg: #161716; --card: #202221; --ink: #ecebe7; --muted: #a3a29d; --line: #343633; --accent: #6cc3a8; --accent-ink: #0f1a16;
+  --soft: #23352f; --chosen: #2b4a40; --hi: #b8902e; --bar: #2c2e2c; --warn: #f0c27a; --warn-bg: #3a2d14;
+} }
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 17px/1.4 -apple-system, system-ui, sans-serif; -webkit-text-size-adjust: 100%; }
+button { font: inherit; color: inherit; }
+header { position: sticky; top: 0; z-index: 5; background: var(--bg); border-bottom: 1px solid var(--line); padding: calc(env(safe-area-inset-top) + 8px) 16px 8px; }
+.row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.grow { flex: 1; min-width: 0; }
+h1 { font-size: 18px; margin: 0; }
+.prog { font-size: 13px; color: var(--muted); }
+.bar { height: 5px; background: var(--bar); border-radius: 3px; overflow: hidden; margin-top: 6px; }
+.bar i { display: block; height: 100%; background: var(--accent); }
+.btn { border: 1px solid var(--line); background: var(--card); border-radius: 10px; padding: 8px 12px; font-size: 15px; cursor: pointer; white-space: nowrap; }
+header .row { flex-wrap: nowrap; }
+header .btn { padding: 8px 10px; }
+.btn.main { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+main { max-width: 760px; margin: 0 auto; padding: 12px 16px 120px; }
+.set { background: var(--card); border: 1px solid var(--line); border-radius: 14px; margin: 12px 0; overflow: hidden; }
+.set > summary { list-style: none; padding: 14px 16px; cursor: pointer; display: flex; gap: 10px; align-items: baseline; }
+.set > summary::-webkit-details-marker { display: none; }
+.set > summary b { flex: 1; font-size: 17px; }
+.sec { display: flex; gap: 10px; align-items: center; padding: 12px 16px; border-top: 1px solid var(--line); cursor: pointer; }
+.sec .grow .bar { margin-top: 4px; }
+.n { font-size: 13px; color: var(--muted); white-space: nowrap; }
+.sechead { position: sticky; top: calc(var(--hh, 96px) - 1px); z-index: 2; background: var(--bg); padding: 8px 0 6px; font-weight: 600; font-size: 15px; color: var(--accent); }
+.q { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 14px; margin: 10px 0; scroll-margin-top: calc(var(--hh, 96px) + 44px); }
+.q.cur { outline: 3px solid var(--hi); outline-offset: 1px; }
+.meta { font-size: 12px; color: var(--muted); display: flex; gap: 6px; flex-wrap: wrap; }
+.chip { font-size: 11.5px; background: var(--soft); border-radius: 6px; padding: 1px 6px; }
+.chip.warn { background: var(--warn-bg); color: var(--warn); }
+.t { font-size: 18px; font-weight: 600; margin: 6px 0 4px; }
+.e { font-size: 14px; color: var(--muted); margin: 0 0 4px; }
+.e b { font-weight: 600; }
+.w { font-size: 13.5px; color: var(--muted); margin: 0 0 6px; }
+.opts { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 6px; }
+.opt { width: 100%; text-align: left; display: flex; gap: 10px; align-items: flex-start; border: 1px solid var(--line); background: var(--bg); border-radius: 10px; padding: 10px 12px; min-height: 48px; cursor: pointer; }
+.opt .k { flex: none; width: 24px; height: 24px; border-radius: 6px; background: var(--bar); font-size: 13px; display: grid; place-items: center; font-weight: 600; }
+.opt small { display: block; color: var(--muted); font-size: 13px; }
+.opt.on { background: var(--chosen); border-color: var(--accent); }
+.opt.on .k { background: var(--accent); color: var(--accent-ink); }
+.opt.hi { box-shadow: 0 0 0 3px var(--hi); }
+.other { display: flex; gap: 6px; margin-top: 8px; }
+.other input { flex: 1; min-width: 0; font: inherit; font-size: 15px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 10px; background: var(--bg); color: var(--ink); }
+.st { font-size: 12.5px; color: var(--accent); min-height: 16px; margin-top: 6px; }
+.st.bad { color: var(--warn); }
+.more { display: block; width: 100%; margin: 10px 0; }
+.empty { color: var(--muted); text-align: center; padding: 30px 0; }
+#toast { position: fixed; left: 50%; bottom: calc(env(safe-area-inset-bottom) + 16px); transform: translateX(-50%); background: var(--accent); color: var(--accent-ink); padding: 12px 18px; border-radius: 12px; font-weight: 600; box-shadow: 0 4px 16px rgba(0,0,0,.2); display: none; z-index: 20; max-width: calc(100% - 32px); text-align: center; }
+#toast.bad { background: var(--warn-bg); color: var(--warn); }
+.panel { position: fixed; inset: 0; background: var(--bg); z-index: 10; overflow: auto; padding: calc(env(safe-area-inset-top) + 12px) 16px 40px; display: none; }
+.panel.open { display: block; }
+.panel .inner { max-width: 760px; margin: 0 auto; }
+#sq { width: 100%; font: inherit; padding: 12px; border-radius: 10px; border: 1px solid var(--line); background: var(--card); color: var(--ink); }
+.hit { padding: 10px 0; border-bottom: 1px solid var(--line); cursor: pointer; }
+table.keys { border-collapse: collapse; width: 100%; font-size: 15px; }
+table.keys td { border-bottom: 1px solid var(--line); padding: 6px 4px; vertical-align: top; }
+kbd { font: 13px ui-monospace, monospace; background: var(--bar); border-radius: 4px; padding: 1px 5px; }
+</style>
+</head>
+<body>
+<header id="hdr">
+  <div class="row">
+    <h1 class="grow" id="home" style="cursor:pointer">Questions</h1>
+    <button class="btn main" id="nextU">Next unanswered</button>
+    <button class="btn" id="srch" aria-label="Search">Search</button>
+    <button class="btn" id="help" aria-label="Help and keys">?</button>
+  </div>
+  <div class="prog"><span id="pa">…</span> · this sitting <span id="ps">0</span> saved, checkpoint every 50 · <span id="where"></span></div>
+  <div class="bar"><i id="pb" style="width:0"></i></div>
+</header>
+<main id="main"><div class="empty">Loading…</div></main>
+<div id="toast"></div>
+
+<div class="panel" id="sp"><div class="inner">
+  <div class="row"><input id="sq" class="grow" type="search" placeholder="Search every question" autocomplete="off"><button class="btn" id="spx">Close</button></div>
+  <div id="sr"></div>
+</div></div>
+
+<div class="panel" id="hp"><div class="inner">
+  <div class="row"><h1 class="grow">How this works</h1><button class="btn" id="hpx">Close</button></div>
+  <p>Every set in one place: the POS 7,000, Mail wording, Franchise OS, Emily, app preferences, gaps and the older rounds. Each tap saves straight to POS. Every 50 answers POS reads them back and shows <b>“50 saved”</b> so you know they landed. Tap a chosen answer again to clear it.</p>
+  <h3>Clicker and keyboard</h3>
+  <table class="keys">
+    <tr><td><kbd>Page Down</kbd> <kbd>↓</kbd></td><td>Highlight the next option</td></tr>
+    <tr><td><kbd>Page Up</kbd> <kbd>↑</kbd></td><td>Highlight the previous option</td></tr>
+    <tr><td><kbd>Enter</kbd> <kbd>Space</kbd> <kbd>→</kbd> <kbd>F5</kbd> <kbd>Esc</kbd> <kbd>.</kbd> <kbd>B</kbd></td><td>Pick the highlighted option, save, go to the next unanswered question (F5 / Esc / . / B are the clicker's “start show” and “black screen” buttons)</td></tr>
+    <tr><td><kbd>1</kbd>–<kbd>9</kbd></td><td>Pick that option straight away</td></tr>
+    <tr><td><kbd>←</kbd></td><td>Back one question</td></tr>
+    <tr><td><kbd>N</kbd></td><td>Next unanswered</td></tr>
+    <tr><td><kbd>S</kbd> or <kbd>/</kbd></td><td>Search</td></tr>
+  </table>
+  <p><label><input type="checkbox" id="two"> Two-button clicker: <b>Page Down</b> moves the highlight (wraps round), <b>Page Up</b> picks it.</label></p>
+  <h3>Answers from the old pages</h3>
+  <p>The old Franchise, Emily, Mail wording, 7,000 and app-preferences pages kept answers on the phone only. Open the old page, tap its Export button, then pick that file here:</p>
+  <p><input type="file" id="imp" accept=".json,application/json,text/plain"></p>
+  <p id="impr" class="prog"></p>
+  <div id="ghbox"></div>
+</div></div>
+
+<script>
+(function () {
+  'use strict';
+  var IDX = null, SEC = {}, BYID = {}, ORDER = [], sitting = [], sittingN = 0, cur = null, hi = 0;
+  var main = document.getElementById('main');
+  function $(id) { return document.getElementById(id); }
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  function fmt(n) { return Number(n).toLocaleString('en-US'); }
+  function store(k, v) { try { if (v === undefined) return JSON.parse(localStorage.getItem(k) || 'null'); localStorage.setItem(k, JSON.stringify(v)); } catch (e) { return null; } }
+  function getJSON(u) { return fetch(u, { cache: 'no-store' }).then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); }); }
+  function postJSON(u, b) { return fetch(u, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(b) }).then(function (r) { return r.json(); }); }
+
+  // ---- data layer: the Tailscale portal (default) or the GitHub Pages copy (window.QA_GH: encrypted files + Supabase) ----
+  var GH = window.QA_GH, API;
+  if (!GH) API = {
+    index: function () { return getJSON('/all/index.json'); },
+    section: function (k) { return getJSON('/all/section.json?k=' + encodeURIComponent(k)); },
+    search: function (q) { return getJSON('/all/search.json?q=' + encodeURIComponent(q)); },
+    answers: function (items) { return postJSON('/all/answers', items); },
+    checkpoint: function (ids) { return postJSON('/all/checkpoint', { ids: ids }); }
+  };
+  else (function () {
+    var KEY = null, TOKEN = null, GI = null, SB = null, OV = {}, QR = null, te = new TextEncoder();
+    function b64(buf) { var s = '', a = new Uint8Array(buf); for (var i = 0; i < a.length; i++) s += String.fromCharCode(a[i]); return btoa(s); }
+    function unb64(s) { var b = atob(s), a = new Uint8Array(b.length); for (var i = 0; i < b.length; i++) a[i] = b.charCodeAt(i); return a; }
+    function unlock(pw) {
+      var C = crypto.subtle;
+      return C.importKey('raw', te.encode(pw), 'PBKDF2', false, ['deriveBits', 'deriveKey']).then(function (base) {
+        var p = function (salt) { return { name: 'PBKDF2', salt: te.encode(salt), iterations: GH.iter, hash: 'SHA-256' }; };
+        return Promise.all([C.deriveKey(p('pos-qa-key-v1'), base, { name: 'AES-GCM', length: 256 }, false, ['encrypt', 'decrypt']), C.deriveBits(p('pos-qa-token-v1'), base, 256)]);
+      }).then(function (r) { KEY = r[0]; TOKEN = Array.prototype.map.call(new Uint8Array(r[1]), function (x) { return ('0' + x.toString(16)).slice(-2); }).join(''); return openFile('i.bin'); });
+    }
+    function openFile(path) {
+      return fetch(path, { cache: 'no-cache' }).then(function (r) { if (!r.ok) throw new Error(r.status); return r.arrayBuffer(); }).then(function (buf) {
+        return crypto.subtle.decrypt({ name: 'AES-GCM', iv: buf.slice(0, 12) }, KEY, buf.slice(12));
+      }).then(function (plain) { return new Response(new Blob([plain]).stream().pipeThrough(new DecompressionStream('gzip'))).text(); }).then(JSON.parse);
+    }
+    function rpc(fn, body) {
+      body.token = TOKEN;
+      return fetch(SB.url + '/rest/v1/rpc/' + fn, { method: 'POST', headers: { apikey: SB.key, 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
+        .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); });
+    }
+    function sealAns(a, o) {
+      var iv = crypto.getRandomValues(new Uint8Array(12));
+      return crypto.subtle.encrypt({ name: 'AES-GCM', iv: iv }, KEY, te.encode(JSON.stringify({ a: a, o: o }))).then(function (ct) { return { ct: b64(ct), iv: b64(iv) }; });
+    }
+    function openAns(ct, iv) { return crypto.subtle.decrypt({ name: 'AES-GCM', iv: unb64(iv) }, KEY, unb64(ct)).then(function (p) { return JSON.parse(new TextDecoder().decode(p)); }); }
+    function norm(s) { return String(s || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim(); }
+    var ready;
+    API = {
+      unlock: unlock,
+      index: function () {
+        // answers saved here since the last publish live in Supabase: fetch, decrypt, and lay them over the published snapshot
+        ready = ready || Promise.all([Promise.resolve(GI), openFile('q.bin')]).then(function (r) {
+          QR = r[1]; SB = GI.supabase;
+          var since = new Date(new Date(GI.published).getTime() - 15 * 60000).toISOString();
+          return rpc('pos_qa_since', { since: since }).catch(function () { return []; });
+        }).then(function (rows) {
+          return Promise.all(rows.map(function (r) { return r.ct ? openAns(r.ct, r.iv).then(function (v) { OV[r.qid] = v; }, function () {}) : (OV[r.qid] = null); }));
+        }).then(function () {
+          var bySec = {}, d = {};
+          QR.forEach(function (row) { if (row[0] in OV) d[row[1]] = (d[row[1]] || 0) + (OV[row[0]] ? 1 : 0) - row[5]; });
+          GI.sets.forEach(function (s) { s.secs.forEach(function (x) { x.a += d[x.k] || 0; bySec[x.k] = x; }); });
+          GI.bySec = bySec; return GI;
+        });
+        return ready;
+      },
+      section: function (k) {
+        return openFile(GI.bySec[k].f).then(function (d) {
+          d.questions.forEach(function (q) { if (q.i in OV) { var v = OV[q.i]; if (v) { q.x = v.a; q.xo = v.o; } else { delete q.x; delete q.xo; } } });
+          return d;
+        });
+      },
+      search: function (text) {
+        var w = norm(text).split(' ').filter(Boolean), hits = [];
+        if (norm(text).length >= 2) for (var i = 0; i < QR.length && hits.length < 80; i++) {
+          var r = QR[i], h = norm(r[2] + ' ' + r[4] + ' ' + r[0]);
+          if (w.every(function (x) { return h.indexOf(x) >= 0; })) hits.push({ i: r[0], k: r[1], q: r[2].slice(0, 140), c: r[3] });
+        }
+        return Promise.resolve({ hits: hits });
+      },
+      answers: function (items) {
+        return Promise.all(items.map(function (it) {
+          return it.answer ? sealAns(it.answer, it.option == null ? null : it.option).then(function (s) { return { id: it.id, ct: s.ct, iv: s.iv }; }) : { id: it.id, ct: '', iv: '' };
+        })).then(function (rows) { return rpc('pos_qa_save', { items: rows }); }).then(function (n) {
+          items.forEach(function (it) { OV[it.id] = it.answer ? { a: it.answer, o: it.option } : null; });
+          return { ok: true, saved: n };
+        });
+      },
+      checkpoint: function (ids) {
+        return rpc('pos_qa_confirm', { ids: ids }).then(function (n) { return { ok: true, asked: ids.length, confirmed: n, missing: n < ids.length ? ids : [] }; });
+      },
+      opened: function (gi) { GI = gi; }
+    };
+  })();
+  var toastT;
+  function toast(msg, bad, ms) { var t = $('toast'); t.textContent = msg; t.className = bad ? 'bad' : ''; t.style.display = 'block'; clearTimeout(toastT); toastT = setTimeout(function () { t.style.display = 'none'; }, ms || 2500); }
+  function setHH() { document.documentElement.style.setProperty('--hh', $('hdr').offsetHeight + 'px'); }
+
+  // ---- index and progress ----
+  function secInfo(k) { for (var i = 0; i < ORDER.length; i++) if (ORDER[i].k === k) return ORDER[i]; return null; }
+  function progress() {
+    var a = 0; ORDER.forEach(function (s) { a += s.a; });
+    IDX.answered = a;
+    $('pa').textContent = fmt(a) + ' of ' + fmt(IDX.total) + ' answered';
+    $('pb').style.width = (100 * a / IDX.total).toFixed(2) + '%';
+    $('ps').textContent = sittingN;
+    setHH();
+  }
+  function loadIndex() {
+    return API.index().then(function (d) {
+      IDX = d; ORDER = [];
+      d.sets.forEach(function (s) { s.secs.forEach(function (x) { x.set = s; ORDER.push(x); }); });
+      progress();
+    });
+  }
+
+  // ---- home: sets and sections ----
+  function home() {
+    feed = null; cur = null; $('where').textContent = '';
+    var open = store('qaall.open') || {};
+    main.innerHTML = IDX.sets.map(function (s) {
+      var n = 0, a = 0; s.secs.forEach(function (x) { n += x.n; a += x.a; });
+      return '<details class="set" data-s="' + s.k + '"' + (open[s.k] ? ' open' : '') + '><summary><b>' + esc(s.l) + '</b><span class="n">' + fmt(a) + ' / ' + fmt(n) + '</span></summary>' +
+        s.secs.map(function (x) {
+          return '<div class="sec" data-k="' + esc(x.k) + '"><div class="grow">' + esc(x.l) + '<div class="bar"><i style="width:' + (100 * x.a / x.n).toFixed(1) + '%"></i></div></div><span class="n">' + fmt(x.a) + ' / ' + fmt(x.n) + '</span></div>';
+        }).join('') + '</details>';
+    }).join('');
+    main.querySelectorAll('details.set').forEach(function (d) { d.addEventListener('toggle', function () { var o = store('qaall.open') || {}; o[d.dataset.s] = d.open; store('qaall.open', o); }); });
+    main.querySelectorAll('.sec').forEach(function (el) { el.onclick = function () { var x = secInfo(el.dataset.k); openAt(x.k, -1); /* -1: first unanswered */ }; });
+    window.scrollTo(0, 0);
+    if (location.hash) history.replaceState(null, '', location.pathname);
+  }
+
+  // ---- sections (loaded on demand, cached) ----
+  function loadSec(k) {
+    if (SEC[k]) return Promise.resolve(SEC[k]);
+    return API.section(k).then(function (d) {
+      d.questions.forEach(function (q, i) { q._k = k; q._n = i; BYID[q.i] = q; });
+      SEC[k] = d.questions; return d.questions;
+    });
+  }
+
+  // ---- the feed: renders forward 30 at a time as you scroll, then the next section ----
+  var feed = null, PAGE = 30, io = null, gen = 0;
+  function openAt(k, i, focusId) {
+    loadSec(k).then(function (qs) {
+      if (i < 0) { i = 0; for (var j = 0; j < qs.length; j++) if (!qs[j].x) { i = j; break; } }
+      i = Math.max(0, Math.min(i, qs.length - 1));
+      var start = Math.max(0, i - 2);
+      gen++; rendering = false;   // a render still loading for the old feed is dropped (see renderMore)
+      feed = { first: { k: k, i: start }, next: { k: k, i: start } };
+      main.innerHTML = (start > 0 ? '<button class="btn more" id="earlier">Show earlier questions</button>' : '') + '<div id="list"></div><div id="sentinel" style="height:1px"></div>';
+      if (start > 0) $('earlier').onclick = earlier;
+      $('list').insertAdjacentHTML('beforeend', secHead(k));
+      renderMore().then(function () {
+        var q = qs[i]; focus(q ? q.i : null, true);
+        if (focusId) focus(focusId, true);
+      });
+      if (io) io.disconnect();
+      io = new IntersectionObserver(function (es) { if (es[0].isIntersecting) renderMore(); }, { rootMargin: '1200px 0px' });
+      io.observe($('sentinel'));
+      history.replaceState(null, '', '#' + encodeURIComponent(k));
+    }).catch(function () { toast('Could not load that section. Check the connection.', true); });
+  }
+  function secHead(k) { var x = secInfo(k); return '<div class="sechead" data-k="' + esc(k) + '">' + esc(x.set.l) + ' · ' + esc(x.l) + '</div>'; }
+  var rendering = false;
+  function renderMore() {
+    if (!feed || rendering) return Promise.resolve();
+    rendering = true;
+    var nx = feed.next, my = gen;
+    return loadSec(nx.k).then(function (qs) {
+      var list = $('list'); if (!list || my !== gen) return;
+      var end = Math.min(qs.length, nx.i + PAGE), html = '';
+      for (var i = nx.i; i < end; i++) html += card(qs[i]);
+      list.insertAdjacentHTML('beforeend', html);
+      feed.next = { k: nx.k, i: end };
+      if (end >= qs.length) {   // on to the next section of this set, then the next set
+        var si = ORDER.indexOf(secInfo(nx.k)) + 1;
+        if (si < ORDER.length) { feed.next = { k: ORDER[si].k, i: 0 }; list.insertAdjacentHTML('beforeend', secHead(ORDER[si].k)); }
+        else { feed.next = null; list.insertAdjacentHTML('beforeend', '<div class="empty">That is every question.</div>'); }
+      }
+      $('where').textContent = secInfo(nx.k).set.l;
+    }).finally(function () { if (my === gen) rendering = false; });
+  }
+  function earlier() {
+    var f = feed.first, qs = SEC[f.k], start = Math.max(0, f.i - PAGE), html = '';
+    for (var i = start; i < f.i; i++) html += card(qs[i]);
+    var list = $('list'), head = list.querySelector('.sechead'), before = document.documentElement.scrollHeight;
+    head.insertAdjacentHTML('afterend', html);
+    window.scrollBy(0, document.documentElement.scrollHeight - before);
+    feed.first = { k: f.k, i: start };
+    if (start === 0) $('earlier').remove();
+  }
+
+  function card(q) {
+    var meta = '<span>' + esc(q.i) + '</span>' + (q.t ? '<span>· ' + esc(q.t) + '</span>' : '') + (q.g ? '<span class="chip warn">check with ' + esc(q.g) + '</span>' : '') +
+      (q.d ? '<span class="chip">same wording as ' + esc(q.d) + '</span>' : '') + (q.r != null && q.o[q.r] ? '<span class="chip">first option recommended</span>' : '');
+    var opts = q.o.map(function (o, k) {
+      var on = q.x != null && (q.xo === k || (q.xo == null && q.x === o));
+      return '<li><button class="opt' + (on ? ' on' : '') + '" data-o="' + k + '"><span class="k">' + (k < 9 ? k + 1 : '') + '</span><span>' + esc(o) + (q.n && q.n[k] ? '<small>' + esc(q.n[k]) + '</small>' : '') + '</span></button></li>';
+    }).join('');
+    var other = q.x && !q.o.some(function (o, k) { return q.xo === k || (q.xo == null && q.x === o); }) ? q.x : '';
+    return '<div class="q" id="q-' + esc(q.i) + '" data-i="' + esc(q.i) + '"><div class="meta">' + meta + '</div><div class="t">' + esc(q.q) + '</div>' +
+      (q.e ? '<div class="e"><b>What this asks:</b> ' + esc(q.e) + '</div>' : '') + (q.w ? '<div class="w">' + esc(q.w) + '</div>' : '') +
+      (q.p ? '<div class="w">POS guess: ' + esc(q.p) + '</div>' : '') +
+      '<ol class="opts">' + opts + '</ol><div class="other"><input type="text" maxlength="500" placeholder="' + (q.o.length ? 'Other answer' : 'Your answer') + '" value="' + esc(other) + '"><button class="btn">Save</button></div>' +
+      '<div class="st">' + (q.x ? 'Answered' : '') + '</div></div>';
+  }
+
+  // ---- answering ----
+  function el(id) { return document.getElementById('q-' + id); }
+  function paint(q) {
+    var c = el(q.i); if (!c) return;
+    c.querySelectorAll('.opt').forEach(function (b) { var k = +b.dataset.o; b.classList.toggle('on', q.x != null && (q.xo === k || (q.xo == null && q.x === q.o[k]))); });
+  }
+  function answer(id, opt, text) {
+    var q = BYID[id]; if (!q) return;
+    var was = !!q.x, clear = false, ans;
+    if (opt != null) { if (q.xo === opt && q.x) clear = true; ans = clear ? '' : q.o[opt]; }
+    else ans = (text || '').trim();
+    if (!ans) clear = true;
+    q.x = clear ? '' : ans; q.xo = clear || opt == null ? null : opt;
+    paint(q);
+    var inp = el(id) && el(id).querySelector('.other input'); if (inp && opt != null) inp.value = '';
+    var x = secInfo(q._k); x.a += (q.x ? 1 : 0) - (was ? 1 : 0); progress();
+    status(id, 'Saving…');
+    send([{ id: id, answer: q.x, option: q.xo }]).then(function (ok) {
+      status(id, ok ? (q.x ? 'Saved ✓' : 'Cleared') : 'Not saved yet. Will retry.', !ok);
+      if (ok && q.x) {
+        sitting = sitting.filter(function (s) { return s !== id; }); sitting.push(id); sittingN++; progress();
+        if (sittingN % IDX.checkpoint === 0) checkpoint();
+      } else if (ok) sitting = sitting.filter(function (s) { return s !== id; });
+    });
+    return !clear;
+  }
+  function status(id, msg, bad) { var c = el(id); if (!c) return; var s = c.querySelector('.st'); s.textContent = msg; s.classList.toggle('bad', !!bad); }
+  // failed saves wait in this phone's storage and go again every 15 s and when the connection returns
+  function send(items) {
+    return API.answers(items).then(function (r) { if (!r.ok) throw 0; return true; })
+      .catch(function () { var p = store('qaall.pending') || {}; items.forEach(function (it) { p[it.id] = it; }); store('qaall.pending', p); return false; });
+  }
+  function flush() {
+    var p = store('qaall.pending') || {}, items = Object.keys(p).map(function (k) { return p[k]; });
+    if (!items.length) return;
+    API.answers(items).then(function (r) {
+      if (!r.ok) return; store('qaall.pending', {}); items.forEach(function (it) { status(it.id, it.answer ? 'Saved ✓' : 'Cleared'); });
+      toast(items.length + ' waiting answer' + (items.length > 1 ? 's' : '') + ' saved');
+    }).catch(function () {});
+  }
+  setInterval(flush, 15000); window.addEventListener('online', flush);
+  function checkpoint() {
+    var ids = sitting.slice(-IDX.checkpoint);
+    toast('Checking the last ' + ids.length + ' with POS…', false, 4000);
+    API.checkpoint(ids).then(function (r) {
+      if (r.ok && r.confirmed === r.asked) toast(fmt(sittingN) + ' saved ✓ POS confirmed all ' + r.asked, false, 4000);
+      else {
+        toast('POS has ' + r.confirmed + ' of ' + r.asked + '. Re-sending the rest…', true, 5000);
+        send((r.missing || []).map(function (id) { var q = BYID[id]; return { id: id, answer: q.x, option: q.xo }; }).filter(function (it) { return it.answer; }));
+      }
+    }).catch(function () { toast('Checkpoint could not reach POS. Answers wait on this phone and retry.', true, 5000); });
+  }
+
+  // ---- current question and moving ----
+  function focus(id, scroll) {
+    if (cur) { var o = el(cur); if (o) { o.classList.remove('cur'); o.querySelectorAll('.opt.hi').forEach(function (b) { b.classList.remove('hi'); }); } }
+    cur = id; if (!id) return;
+    var c = el(id); if (!c) return;
+    c.classList.add('cur');
+    var q = BYID[id]; hi = q.xo != null ? q.xo : 0; light();
+    if (scroll) c.scrollIntoView({ block: 'start', behavior: 'smooth' });
+  }
+  function light() { var c = el(cur); if (!c) return; c.querySelectorAll('.opt').forEach(function (b, k) { b.classList.toggle('hi', k === hi); }); }
+  function loadedAfter(id, pred) {   // next card in the rendered list after id that matches pred
+    var cards = main.querySelectorAll('.q'), seen = !id;
+    for (var i = 0; i < cards.length; i++) { var d = cards[i].dataset.i; if (seen && pred(BYID[d])) return d; if (d === id) seen = true; }
+    return null;
+  }
+  function nextUnanswered(fromId) {
+    var hit = loadedAfter(fromId || cur, function (q) { return !q.x; });
+    if (hit) { focus(hit, true); return; }
+    // not in what is on screen: the next section (from the current one) that still has open questions
+    var start = cur && BYID[cur] ? ORDER.indexOf(secInfo(BYID[cur]._k)) : 0;
+    for (var n = 0; n < ORDER.length; n++) {
+      var x = ORDER[(start + n) % ORDER.length];
+      if (x.a < x.n) {
+        var from = n === 0 && cur && BYID[cur] ? BYID[cur]._n + 1 : 0;
+        return loadSec(x.k).then(function (qs) {
+          for (var j = from; j < qs.length; j++) if (!qs[j].x) return openAt(x.k, j);
+          for (j = 0; j < qs.length; j++) if (!qs[j].x) return openAt(x.k, j);
+          x.a = x.n; nextUnanswered();
+        });
+      }
+    }
+    toast('Every question is answered.');
+  }
+  function step(dir) {
+    var cards = Array.prototype.slice.call(main.querySelectorAll('.q')), i = cards.findIndex(function (c) { return c.dataset.i === cur; });
+    var t = cards[i + dir]; if (t) focus(t.dataset.i, true);
+    if (dir > 0 && i + dir >= cards.length - 3) renderMore();
+  }
+
+  // taps
+  main.addEventListener('click', function (ev) {
+    var b = ev.target.closest('.opt'), c = ev.target.closest('.q');
+    if (c && c.dataset.i !== cur) focus(c.dataset.i, false);
+    if (b) { var id = c.dataset.i; hi = +b.dataset.o; light(); if (answer(id, +b.dataset.o)) setTimeout(function () { if (cur === id) nextUnanswered(id); }, 350); return; }
+    if (c && ev.target.matches('.other .btn')) { answer(c.dataset.i, null, c.querySelector('.other input').value); }
+  });
+  main.addEventListener('keydown', function (ev) { if (ev.target.matches('.other input') && ev.key === 'Enter') { ev.preventDefault(); var c = ev.target.closest('.q'); answer(c.dataset.i, null, ev.target.value); ev.target.blur(); } });
+
+  // keys (Bluetooth presenter clickers send PageUp/PageDown, F5/Shift+F5, Esc, '.', 'b')
+  var two = !!store('qaall.two'); $('two').checked = two; $('two').onchange = function () { two = this.checked; store('qaall.two', two); };
+  document.addEventListener('keydown', function (ev) {
+    if (ev.metaKey || ev.ctrlKey || ev.altKey) return;
+    var typing = /INPUT|TEXTAREA/.test(document.activeElement.tagName);
+    if ($('sp').classList.contains('open')) { if (ev.key === 'Escape') { closeP('sp'); ev.preventDefault(); } return; }
+    if ($('hp').classList.contains('open')) { if (ev.key === 'Escape') { closeP('hp'); ev.preventDefault(); } return; }
+    if (typing) return;
+    var q = cur && BYID[cur], k = ev.key, nopt = q ? q.o.length : 0;
+    function pick() { if (q && nopt) { var id = cur; if (answer(id, hi)) nextUnanswered(id); else focus(id); } }
+    if (!feed && /^(PageDown|PageUp|ArrowDown|ArrowUp|Enter|ArrowRight|F5|n|N)$/.test(k)) { ev.preventDefault(); nextUnanswered(); return; }
+    if (two && k === 'PageDown') { ev.preventDefault(); if (nopt) { hi = (hi + 1) % nopt; light(); } return; }
+    if (two && k === 'PageUp') { ev.preventDefault(); pick(); return; }
+    if (k === 'PageDown' || k === 'ArrowDown') { ev.preventDefault(); if (nopt) { hi = Math.min(nopt - 1, hi + 1); light(); } else step(1); }
+    else if (k === 'PageUp' || k === 'ArrowUp') { ev.preventDefault(); if (nopt) { hi = Math.max(0, hi - 1); light(); } else step(-1); }
+    else if (k === 'Enter' || k === ' ' || k === 'ArrowRight' || k === 'F5' || k === 'Escape' || k === '.' || k === 'b' || k === 'B') { ev.preventDefault(); pick(); }
+    else if (k === 'ArrowLeft' || k === 'Backspace') { ev.preventDefault(); step(-1); }
+    else if (/^[1-9]$/.test(k) && q && +k <= nopt) { ev.preventDefault(); hi = +k - 1; light(); pick(); }
+    else if (k === 'n' || k === 'N') { ev.preventDefault(); nextUnanswered(); }
+    else if (k === 's' || k === 'S' || k === '/') { ev.preventDefault(); openP('sp'); }
+  });
+
+  // ---- search ----
+  function openP(id) { $(id).classList.add('open'); if (id === 'sp') setTimeout(function () { $('sq').focus(); }, 50); }
+  function closeP(id) { $(id).classList.remove('open'); }
+  var sT;
+  $('sq').addEventListener('input', function () {
+    clearTimeout(sT); var v = this.value;
+    sT = setTimeout(function () {
+      if (v.trim().length < 2) { $('sr').innerHTML = ''; return; }
+      API.search(v).then(function (d) {
+        $('sr').innerHTML = d.hits.length ? d.hits.map(function (h) { var x = secInfo(h.k); return '<div class="hit" data-i="' + esc(h.i) + '" data-k="' + esc(h.k) + '"><div class="meta">' + esc(x.set.l) + ' · ' + esc(h.c) + ' · ' + esc(h.i) + '</div>' + esc(h.q) + '</div>'; }).join('') + (d.hits.length >= 80 ? '<p class="prog">First 80 shown. Add a word to narrow it.</p>' : '') : '<p class="prog">No matches.</p>';
+      });
+    }, 250);
+  });
+  $('sr').addEventListener('click', function (ev) {
+    var h = ev.target.closest('.hit'); if (!h) return; closeP('sp');
+    loadSec(h.dataset.k).then(function () { openAt(h.dataset.k, BYID[h.dataset.i]._n); });
+  });
+
+  // ---- import exports from the old pages ----
+  $('imp').onchange = function () {
+    var f = this.files[0]; if (!f) return;
+    f.text().then(function (txt) {
+      var d = JSON.parse(txt), rows = [];
+      if (d && !Array.isArray(d) && Array.isArray(d.answers)) d = d.answers;
+      if (Array.isArray(d)) d.forEach(function (r) { if (r && r.id) rows.push({ id: String(r.id), text: r.answer != null ? r.answer : (r.chosen != null ? r.chosen : r.other) }); });
+      else if (d && typeof d === 'object') Object.keys(d).forEach(function (id) { var v = d[id]; rows.push({ id: id, text: typeof v === 'string' ? v : v && (v.answer || v.l || v.o || v.a) }); });
+      rows = rows.filter(function (r) { return r.text; });
+      $('impr').textContent = 'Read ' + rows.length + ' answers. Saving…';
+      // the chosen label is saved as the answer text; the page marks the option whose label matches
+      var items = rows.map(function (r) { return { id: r.id, answer: String(r.text).slice(0, 500), option: null }; });
+      API.answers(items).then(function (r) {
+        $('impr').textContent = r.ok ? 'Saved ' + r.saved + ' of ' + rows.length + ' (answers for questions not in this app are skipped). Reloading…' : 'Could not save.';
+        if (r.ok) setTimeout(function () { location.reload(); }, 1500);
+      });
+    }).catch(function () { $('impr').textContent = 'That file is not an answers export.'; });
+  };
+
+  // ---- wiring ----
+  $('home').onclick = home;
+  $('nextU').onclick = function () { nextUnanswered(); };
+  $('srch').onclick = function () { openP('sp'); };
+  $('help').onclick = function () { openP('hp'); };
+  $('spx').onclick = function () { closeP('sp'); };
+  $('hpx').onclick = function () { closeP('hp'); };
+  window.addEventListener('resize', setHH);
+  setHH();
+  function start() { loadIndex().then(function () {
+    var k = decodeURIComponent(location.hash.slice(1));
+    if (k && secInfo(k)) openAt(k, -1); else home();
+    flush();
+  }).catch(function () { main.innerHTML = GH ? '<div class="empty">Could not load. Check the connection, then reload.</div>' : '<div class="empty">Could not reach POS. Check Tailscale, then reload.</div>'; }); }
+  if (!GH) {
+    start();
+    getJSON('/all/gh.json').then(function (g) {   // tailnet only: the phone link and its passphrase
+      $('ghbox').innerHTML = '<h3>Phone link (GitHub)</h3><p>Works anywhere, no Tailscale needed: <a href="' + esc(g.url) + '">' + esc(g.url) + '</a>. Type this passphrase there once:</p>' +
+        '<p class="row"><kbd id="ghpw" style="font-size:16px;padding:6px 8px">' + esc(g.passphrase) + '</kbd><button class="btn" id="ghcp">Copy</button></p>' +
+        '<p class="prog">Published ' + esc(g.published || 'not yet') + ' · ' + fmt(g.pulled || 0) + ' answers pulled in from it' + (g.error ? ' · last problem: ' + esc(g.error) : '') + '</p>';
+      $('ghcp').onclick = function () { navigator.clipboard.writeText(g.passphrase).then(function () { toast('Passphrase copied'); }); };
+    }).catch(function () {});
+  } else {
+    var tryPw = function (pw, remember) {
+      main.innerHTML = '<div class="empty">Unlocking…</div>';
+      return API.unlock(pw).then(function (gi) { API.opened(gi); if (remember) store('qaall.pw', pw); start(); })
+        .catch(function () { store('qaall.pw', null); lockScreen('That passphrase does not open it. Try again.'); });
+    };
+    var lockScreen = function (msg) {
+      main.innerHTML = '<div class="set" style="padding:16px"><h1>Locked</h1><p class="prog">' + esc(msg || 'Type the passphrase from the POS question page (Tailscale, ? panel). It stays on this phone.') + '</p>' +
+        '<p><input id="pw" type="password" autocomplete="current-password" style="width:100%;font:inherit;padding:12px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--ink)"></p>' +
+        '<p><label><input type="checkbox" id="pwr" checked> Remember on this phone</label></p><button class="btn main" id="pwgo">Unlock</button></div>';
+      var go = function () { tryPw($('pw').value.trim(), $('pwr').checked); };
+      $('pwgo').onclick = go; $('pw').onkeydown = function (e) { if (e.key === 'Enter') go(); }; $('pw').focus();
+    };
+    var saved = store('qaall.pw');
+    if (saved) tryPw(saved, true); else lockScreen();
+    $('ghbox').innerHTML = '<p class="prog">Answers here are encrypted on this phone before they are saved, and POS pulls them in every few minutes. Health and family-planning questions are only on the Tailscale page.</p><p><button class="btn" id="lockit">Lock this phone (forget passphrase)</button></p>';
+    $('lockit').onclick = function () { store('qaall.pw', null); location.reload(); };
+  }
+})();
+</script>
+</body>
+</html>
