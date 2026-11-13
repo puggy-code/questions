@@ -501,7 +501,7 @@ kbd { font: 13px ui-monospace, monospace; background: var(--bar); border-radius:
   if (!GH) {
     start();
     getJSON('/all/gh.json').then(function (g) {   // tailnet only: the phone link and its passphrase
-      $('ghbox').innerHTML = '<h3>Phone link (GitHub)</h3><p>Works anywhere, no Tailscale needed: <a href="' + esc(g.url) + '">' + esc(g.url) + '</a>. Type this passphrase there once:</p>' +
+      $('ghbox').innerHTML = '<h3>Phone link (GitHub)</h3><p>Works anywhere, no Tailscale needed: <a href="' + esc(g.url) + '">' + esc(g.url) + '</a>. Type this PIN there once:</p>' +
         '<p class="row"><kbd id="ghpw" style="font-size:16px;padding:6px 8px">' + esc(g.passphrase) + '</kbd><button class="btn" id="ghcp">Copy</button></p>' +
         '<p class="prog">Published ' + esc(g.published || 'not yet') + ' · ' + fmt(g.pulled || 0) + ' answers pulled in from it' + (g.error ? ' · last problem: ' + esc(g.error) : '') + '</p>';
       $('ghcp').onclick = function () { navigator.clipboard.writeText(g.passphrase).then(function () { toast('Passphrase copied'); }); };
@@ -510,18 +510,18 @@ kbd { font: 13px ui-monospace, monospace; background: var(--bar); border-radius:
     var tryPw = function (pw, remember) {
       main.innerHTML = '<div class="empty">Unlocking…</div>';
       return API.unlock(pw).then(function (gi) { API.opened(gi); if (remember) store('qaall.pw', pw); start(); })
-        .catch(function () { store('qaall.pw', null); lockScreen('That passphrase does not open it. Try again.'); });
+        .catch(function () { store('qaall.pw', null); lockScreen('That PIN does not open it. Try again.'); });
     };
     var lockScreen = function (msg) {
-      main.innerHTML = '<div class="set" style="padding:16px"><h1>Locked</h1><p class="prog">' + esc(msg || 'Type the passphrase from the POS question page (Tailscale, ? panel). It stays on this phone.') + '</p>' +
-        '<p><input id="pw" type="password" autocomplete="current-password" style="width:100%;font:inherit;padding:12px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--ink)"></p>' +
+      main.innerHTML = '<div class="set" style="padding:16px"><h1>Locked</h1><p class="prog">' + esc(msg || 'Type your PIN. It stays on this phone.') + '</p>' +
+        '<p><input id="pw" type="password" inputmode="numeric" autocomplete="current-password" style="width:100%;font:inherit;padding:12px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--ink)"></p>' +
         '<p><label><input type="checkbox" id="pwr" checked> Remember on this phone</label></p><button class="btn main" id="pwgo">Unlock</button></div>';
       var go = function () { tryPw($('pw').value.trim(), $('pwr').checked); };
       $('pwgo').onclick = go; $('pw').onkeydown = function (e) { if (e.key === 'Enter') go(); }; $('pw').focus();
     };
     var saved = store('qaall.pw');
     if (saved) tryPw(saved, true); else lockScreen();
-    $('ghbox').innerHTML = '<p class="prog">Answers here are encrypted on this phone before they are saved, and POS pulls them in every few minutes. Health and family-planning questions are only on the Tailscale page.</p><p><button class="btn" id="lockit">Lock this phone (forget passphrase)</button></p>';
+    $('ghbox').innerHTML = '<p class="prog">Answers here are encrypted on this phone before they are saved, and POS pulls them in every few minutes. Health and family-planning questions are only on the Tailscale page.</p><p><button class="btn" id="lockit">Lock this phone (forget PIN)</button></p>';
     $('lockit').onclick = function () { store('qaall.pw', null); location.reload(); };
   }
 })();
