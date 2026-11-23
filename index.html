@@ -55,6 +55,8 @@ main { max-width: 760px; margin: 0 auto; padding: 12px 16px 120px; }
 .opt > span:nth-child(2), .q .t { white-space: pre-line; }   /* email taste options carry whole emails (2026-11-13) */
 .opt small { display: block; color: var(--muted); font-size: 13px; }
 .opt.on { background: var(--chosen); border-color: var(--accent); }
+.opt.cp { border-style: dashed; border-color: var(--accent); }
+.opt .cpk { color: var(--accent); font-weight: 600; }
 .opt.on .k { background: var(--accent); color: var(--accent-ink); }
 .opt.on.inf { border-style: dashed; background: transparent; }
 .fill { font-size: 12.5px; margin-top: 8px; padding: 6px 8px; border: 1px dashed var(--accent); border-radius: 8px; opacity: .9; }
@@ -317,7 +319,8 @@ kbd { font: 13px ui-monospace, monospace; background: var(--bar); border-radius:
       (q.d ? '<span class="chip">same wording as ' + esc(q.d) + '</span>' : '') + (q.r != null && q.o[q.r] ? '<span class="chip">first option recommended</span>' : '');
     var opts = q.o.map(function (o, k) {
       var on = q.x != null && (q.xo === k || (q.xo == null && q.x === o));
-      return '<li><button class="opt' + (on ? ' on' : '') + (on && q.h === 'inferred' ? ' inf' : '') + '" data-o="' + k + '"><span class="k">' + (k < 9 ? k + 1 : '') + '</span><span>' + esc(o) + (q.n && q.n[k] ? '<small>' + esc(q.n[k]) + '</small>' : '') + '</span></button></li>';
+      var cp = q.x == null && q.cp && q.cp.o === k;   // Claude's pick (bos_qa_predict, 80%+): a hint, saved only when tapped
+      return '<li><button class="opt' + (on ? ' on' : '') + (cp ? ' cp' : '') + (on && q.h === 'inferred' ? ' inf' : '') + '" data-o="' + k + '"><span class="k">' + (k < 9 ? k + 1 : '') + '</span><span>' + esc(o) + (q.n && q.n[k] ? '<small>' + esc(q.n[k]) + '</small>' : '') + (cp ? '<small class="cpk">Claude\'s pick · ' + Math.round(q.cp.c * 100) + '% from your past answers</small>' : '') + '</span></button></li>';
     }).join('');
     var other = q.x && !q.o.some(function (o, k) { return q.xo === k || (q.xo == null && q.x === o); }) ? q.x : '';
     return '<div class="q" id="q-' + esc(q.i) + '" data-i="' + esc(q.i) + '"><div class="meta">' + meta + '</div><div class="t">' + esc(q.q) + '</div>' +
