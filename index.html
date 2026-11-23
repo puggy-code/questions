@@ -56,6 +56,8 @@ main { max-width: 760px; margin: 0 auto; padding: 12px 16px 120px; }
 .opt small { display: block; color: var(--muted); font-size: 13px; }
 .opt.on { background: var(--chosen); border-color: var(--accent); }
 .opt.on .k { background: var(--accent); color: var(--accent-ink); }
+.opt.on.inf { border-style: dashed; background: transparent; }
+.fill { font-size: 12.5px; margin-top: 8px; padding: 6px 8px; border: 1px dashed var(--accent); border-radius: 8px; opacity: .9; }
 .opt.hi { box-shadow: 0 0 0 3px var(--hi); }
 .other { display: flex; gap: 6px; margin-top: 8px; }
 .other input { flex: 1; min-width: 0; font: inherit; font-size: 15px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 10px; background: var(--bg); color: var(--ink); }
@@ -184,7 +186,7 @@ kbd { font: 13px ui-monospace, monospace; background: var(--bar); border-radius:
       },
       section: function (k) {
         return openFile(GI.bySec[k].f).then(function (d) {
-          d.questions.forEach(function (q) { if (q.i in OV) { var v = OV[q.i]; if (v) { q.x = v.a; q.xo = v.o; } else { delete q.x; delete q.xo; } } });
+          d.questions.forEach(function (q) { if (q.i in OV) { var v = OV[q.i]; delete q.h; delete q.f; if (v) { q.x = v.a; q.xo = v.o; } else { delete q.x; delete q.xo; } } });
           return d;
         });
       },
@@ -219,7 +221,7 @@ kbd { font: 13px ui-monospace, monospace; background: var(--bar); border-radius:
   function progress() {
     var a = 0; ORDER.forEach(function (s) { a += s.a; });
     IDX.answered = a;
-    $('pa').textContent = fmt(a) + ' of ' + fmt(IDX.total) + ' answered';
+    $('pa').textContent = fmt(a) + ' of ' + fmt(IDX.total) + ' answered' + (IDX.inferred ? ' (' + fmt(IDX.inferred) + ' filled in from your earlier answers)' : '');
     $('pb').style.width = (100 * a / IDX.total).toFixed(2) + '%';
     $('ps').textContent = sittingN;
     setHH();
@@ -315,26 +317,29 @@ kbd { font: 13px ui-monospace, monospace; background: var(--bar); border-radius:
       (q.d ? '<span class="chip">same wording as ' + esc(q.d) + '</span>' : '') + (q.r != null && q.o[q.r] ? '<span class="chip">first option recommended</span>' : '');
     var opts = q.o.map(function (o, k) {
       var on = q.x != null && (q.xo === k || (q.xo == null && q.x === o));
-      return '<li><button class="opt' + (on ? ' on' : '') + '" data-o="' + k + '"><span class="k">' + (k < 9 ? k + 1 : '') + '</span><span>' + esc(o) + (q.n && q.n[k] ? '<small>' + esc(q.n[k]) + '</small>' : '') + '</span></button></li>';
+      return '<li><button class="opt' + (on ? ' on' : '') + (on && q.h === 'inferred' ? ' inf' : '') + '" data-o="' + k + '"><span class="k">' + (k < 9 ? k + 1 : '') + '</span><span>' + esc(o) + (q.n && q.n[k] ? '<small>' + esc(q.n[k]) + '</small>' : '') + '</span></button></li>';
     }).join('');
     var other = q.x && !q.o.some(function (o, k) { return q.xo === k || (q.xo == null && q.x === o); }) ? q.x : '';
     return '<div class="q" id="q-' + esc(q.i) + '" data-i="' + esc(q.i) + '"><div class="meta">' + meta + '</div><div class="t">' + esc(q.q) + '</div>' +
       (q.e ? '<div class="e"><b>What this asks:</b> ' + esc(q.e) + '</div>' : '') + (q.w ? '<div class="w">' + esc(q.w) + '</div>' : '') +
       (q.p ? '<div class="w">POS guess: ' + esc(q.p) + '</div>' : '') +
       '<ol class="opts">' + opts + '</ol><div class="other"><input type="text" maxlength="500" placeholder="' + (q.o.length ? 'Other answer' : 'Your answer') + '" value="' + esc(other) + '"><button class="btn">Save</button></div>' +
-      '<div class="st">' + (q.x ? 'Answered' : '') + '</div></div>';
+      (q.h === 'inferred' ? '<div class="fill"><b>Filled in, not your tap.</b> From ' + esc(q.f || 'an earlier answer') + '. Tap it to keep, or tap another option to change.</div>' : '') +
+      '<div class="st">' + (q.x ? (q.h === 'inferred' ? 'Filled in' : 'Answered') : '') + '</div></div>';
   }
 
   // ---- answering ----
   function el(id) { return document.getElementById('q-' + id); }
   function paint(q) {
     var c = el(q.i); if (!c) return;
-    c.querySelectorAll('.opt').forEach(function (b) { var k = +b.dataset.o; b.classList.toggle('on', q.x != null && (q.xo === k || (q.xo == null && q.x === q.o[k]))); });
+    c.querySelectorAll('.opt').forEach(function (b) { var k = +b.dataset.o, on = q.x != null && (q.xo === k || (q.xo == null && q.x === q.o[k])); b.classList.toggle('on', on); b.classList.toggle('inf', on && q.h === 'inferred'); });
+    var f = c.querySelector('.fill'); if (f && q.h !== 'inferred') f.remove();
   }
   function answer(id, opt, text) {
     var q = BYID[id]; if (!q) return;
     var was = !!q.x, clear = false, ans;
-    if (opt != null) { if (q.xo === opt && q.x) clear = true; ans = clear ? '' : q.o[opt]; }
+    if (opt != null) { if (q.xo === opt && q.x && q.h !== 'inferred') clear = true; ans = clear ? '' : q.o[opt]; }
+    if (q.h === 'inferred') { delete q.h; delete q.f; if (IDX.inferred) IDX.inferred--; }   // his tap replaces the filled-in answer (keep = confirm)
     else ans = (text || '').trim();
     if (!ans) clear = true;
     q.x = clear ? '' : ans; q.xo = clear || opt == null ? null : opt;
