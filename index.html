@@ -39,6 +39,10 @@ main { max-width: 760px; margin: 0 auto; padding: 12px 16px 120px; }
 .sec { display: flex; gap: 10px; align-items: center; padding: 12px 16px; border-top: 1px solid var(--line); cursor: pointer; }
 .sec .grow .bar { margin-top: 4px; }
 .n { font-size: 13px; color: var(--muted); white-space: nowrap; }
+.ord { display: flex; gap: 8px; margin: 12px 0 0; }
+.ord .btn.on { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+.bw { display: block; font-size: 12.5px; color: var(--muted); font-weight: normal; margin-top: 2px; }
+.set > summary b .rk { color: var(--muted); font-weight: 600; margin-right: 4px; }
 .sechead { position: sticky; top: calc(var(--hh, 96px) - 1px); z-index: 2; background: var(--bg); padding: 8px 0 6px; font-weight: 600; font-size: 15px; color: var(--accent); }
 .q { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 14px; margin: 10px 0; scroll-margin-top: calc(var(--hh, 96px) + 44px); }
 .q.cur { outline: 3px solid var(--hi); outline-offset: 1px; }
@@ -230,23 +234,39 @@ kbd { font: 13px ui-monospace, monospace; background: var(--bar); border-radius:
   }
   function loadIndex() {
     return API.index().then(function (d) {
-      IDX = d; ORDER = [];
-      d.sets.forEach(function (s) { s.secs.forEach(function (x) { x.set = s; ORDER.push(x); }); });
+      IDX = d; IDX.built = d.sets.slice();
+      setOrder();
       progress();
     });
+  }
+
+  // "Bottleneck first" (Jack 2026-11-26): sets ranked by how much live work waits on them (s.b from bos_qa_all.BOTTLENECK);
+  // a fully answered set moves to the end. "As built" keeps the build order. The choice is remembered on this device.
+  function setDone(s) { var n = 0, a = 0; s.secs.forEach(function (x) { n += x.n; a += x.a; }); return a >= n; }
+  function setOrder() {
+    var b = (store('qaall.order') || 'b') === 'b', pos = {};
+    IDX.built.forEach(function (s, i) { pos[s.k] = i; });
+    IDX.sets = IDX.built.slice();
+    if (b) IDX.sets.sort(function (x, y) { return (setDone(x) - setDone(y)) || ((x.b || 99) - (y.b || 99)) || (pos[x.k] - pos[y.k]); });
+    ORDER = [];
+    IDX.sets.forEach(function (s) { s.secs.forEach(function (x) { x.set = s; ORDER.push(x); }); });
   }
 
   // ---- home: sets and sections ----
   function home() {
     feed = null; cur = null; $('where').textContent = '';
     var open = store('qaall.open') || {};
-    main.innerHTML = IDX.sets.map(function (s) {
+    var bmode = (store('qaall.order') || 'b') === 'b';
+    main.innerHTML = '<div class="ord"><button class="btn' + (bmode ? ' on' : '') + '" data-o="b">Bottleneck first</button><button class="btn' + (bmode ? '' : ' on') + '" data-o="a">As built</button></div>' +
+      IDX.sets.map(function (s, si) {
       var n = 0, a = 0; s.secs.forEach(function (x) { n += x.n; a += x.a; });
-      return '<details class="set" data-s="' + s.k + '"' + (open[s.k] ? ' open' : '') + '><summary><b>' + esc(s.l) + '</b><span class="n">' + fmt(a) + ' / ' + fmt(n) + '</span></summary>' +
+      var head = bmode ? '<span class="rk">' + (si + 1) + '.</span>' + esc(s.l) + (s.bw ? '<span class="bw">' + esc(s.bw) + '</span>' : '') : esc(s.l);
+      return '<details class="set" data-s="' + s.k + '"' + (open[s.k] ? ' open' : '') + '><summary><b>' + head + '</b><span class="n">' + fmt(a) + ' / ' + fmt(n) + '</span></summary>' +
         s.secs.map(function (x) {
           return '<div class="sec" data-k="' + esc(x.k) + '"><div class="grow">' + esc(x.l) + '<div class="bar"><i style="width:' + (100 * x.a / x.n).toFixed(1) + '%"></i></div></div><span class="n">' + fmt(x.a) + ' / ' + fmt(x.n) + '</span></div>';
         }).join('') + '</details>';
     }).join('');
+    main.querySelectorAll('.ord .btn').forEach(function (el) { el.onclick = function () { store('qaall.order', el.dataset.o); setOrder(); home(); }; });
     main.querySelectorAll('details.set').forEach(function (d) { d.addEventListener('toggle', function () { var o = store('qaall.open') || {}; o[d.dataset.s] = d.open; store('qaall.open', o); }); });
     main.querySelectorAll('.sec').forEach(function (el) { el.onclick = function () { var x = secInfo(el.dataset.k); openAt(x.k, -1); /* -1: first unanswered */ }; });
     window.scrollTo(0, 0);
